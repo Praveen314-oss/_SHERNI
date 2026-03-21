@@ -142,6 +142,7 @@ function unlockAudio(){
   initAudioCtx();
   if(audioCtx.state==='suspended')audioCtx.resume();
 }
+// Web Audio synth for ambient music (separate from MP3 bgm)
 document.body.addEventListener('click',unlockAudio,{once:true});
 
 function stopAllNodes(){
@@ -290,7 +291,7 @@ function go(pg){
   if(tgt){tgt.classList.add('active');window.scrollTo(0,0);}
   document.querySelectorAll('.htile,[data-p]').forEach(t=>t.classList.toggle('act',t.dataset.p===pg));
   showMasc(pg);
-  setTimeout(()=>initRV(),80);
+  setTimeout(()=>{initRV();openAllCards();},80);
   const roar=document.getElementById('roar');
   if(roar){roar.currentTime=0;roar.volume=.32;roar.play().catch(()=>{});}
 
@@ -320,7 +321,7 @@ window.addEventListener('popstate',function(e){
   if(tgt){tgt.classList.add('active');window.scrollTo(0,0);}
   document.querySelectorAll('.htile,[data-p]').forEach(t=>t.classList.toggle('act',t.dataset.p==='home'));
   showMasc('home');
-  setTimeout(()=>initRV(),80);
+  setTimeout(()=>{initRV();if(typeof openAllCards==="function")openAllCards();},80);
   const backBtn=document.getElementById('backHomeBtn');
   if(backBtn) backBtn.classList.remove('show');
   // Re-seed history so back works again from home
@@ -349,21 +350,21 @@ function copyLink(){
 
 // ── SCROLL REVEAL ──
 function initRV(){
-  const obs=new IntersectionObserver((es)=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('on');obs.unobserve(e.target);}}),{threshold:.08});
-  document.querySelectorAll('.rv:not(.on)').forEach(el=>obs.observe(el));
-  // FLOWCHART sequential animation
+  // All content immediately visible — no scroll delay
+  document.querySelectorAll('.rv').forEach(el=>el.classList.add('on'));
   document.querySelectorAll('.fc-wrap').forEach(wrap=>{
-    const items=wrap.querySelectorAll('.fc-start,.fc-end,.fc-node,.fc-arr,.fc-dec');
-    const wObs=new IntersectionObserver(([e])=>{
-      if(e.isIntersecting){
-        items.forEach((item,i)=>setTimeout(()=>item.classList.add('vis'),i*140));
-        wObs.unobserve(e.target);
-      }
-    },{threshold:.1});
-    wObs.observe(wrap);
+    wrap.querySelectorAll('.fc-start,.fc-end,.fc-node,.fc-arr,.fc-dec').forEach(item=>item.classList.add('vis'));
   });
 }
 initRV();
+
+// Open ALL expandable section cards by default — content fully static
+function openAllCards(){
+  document.querySelectorAll(
+    '.sit-card,.fa-card,.cs-card,.lr-sc-card,.sp-step-card,.lg-card,.mv-card,.obs-card,.habit-card'
+  ).forEach(el=>el.classList.add('open'));
+}
+openAllCards();
 
 // ── QUIZ GAME ──
 
@@ -579,7 +580,7 @@ document.getElementById('local-vid-modal').addEventListener('click',function(e){
 
 // ── INIT ──
 window.addEventListener('load',()=>{
-  setTimeout(initRV,300);
+  setTimeout(()=>{initRV();openAllCards();},300);
   // Play audio immediately from the very start
   const m=document.getElementById('bgm');
   if(!m)return;
